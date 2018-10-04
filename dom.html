@@ -1,0 +1,212 @@
+<html>
+
+<head>
+    <title>A* Path Finding - DOM</title>
+    <script src="src/map.js"></script>
+    <script src="src/astar.js"></script>
+    <style>
+        .container {
+            background-color: #bdc3c7;
+            padding: 0.5px;
+            display: inline-grid;
+        }
+
+        .col {
+            width: 25px;
+            height: 25px;
+            margin: 0.5px;
+            background: white;
+            display: inline-grid;
+        }
+
+        .col.start {
+            background: #e74c3c;
+        }
+
+        .col.end {
+            background: #9b59b6;
+        }
+
+        .col.obstacle {
+            background: #34495e;
+        }
+
+        .col.path {
+            background: #2ecc71;
+        }
+
+        .toolbox {
+            float: left;
+            margin-left: 10px;
+        }
+
+        legend {
+            background-color: #000;
+            color: #fff;
+            padding: 3px 6px;
+        }
+
+        input {
+            margin: .4rem;
+        }
+
+        body {
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        button {
+            background: #3498db;
+            width: 100px;
+            color: #fff;
+            border: 0;
+            padding: 10px;
+            cursor: pointer;
+            clear: both;
+            display: block;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #2E88C5;
+        }
+
+        section{
+            float: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>A* Path Finding</h1>
+        <div id="grid-container"></div>
+        <!-- <div class="toolbox">
+            <form>
+                <fieldset>
+                    <legend>Draw</legend>
+                    <div>
+                        <input type="radio" id="obstacle" name="draw-item" value="1" />
+                        <label for="obstacle">Obstacle</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" id="remove" name="draw-item" value="0" />
+                        <label for="remove">Empty</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" id="start" name="draw-item" value="2" checked />
+                        <label for="start">Start Point</label>
+                    </div>
+
+                    <div>
+                        <input type="radio" id="end" name="draw-item" value="3" />
+                        <label for="end">End Point</label>
+                    </div>
+                </fieldset>
+            </form>
+
+            <button id="find-path">Find Path!</button>
+
+        </div> -->
+
+        <button id="find-path">Find Path!</button>
+
+</body>
+<script>
+    'use strict';
+    const startPos = {
+        x: 1,
+        y: 4
+    };
+    const endPos = {
+        x: 5,
+        y: 4
+    };
+
+    function render(map) {
+        document.getElementById("grid-container").innerHTML = '';
+
+        let container = document.createElement('div');
+        container.id = "main";
+        container.className = "container";
+
+        for (let r = 0; r < map.rows; r++) {
+
+            let row = document.createElement('div');
+            row.className = "row";
+            row.id = "row" + r;
+            row.dataset.y = r;
+
+            for (let c = 0; c < map.cols; c++) {
+                let box = document.createElement('div');
+                box.id = c.toString() + r.toString();
+                box.className = 'col';
+                box.dataset.x = c;
+                box.dataset.y = r;
+
+                let tileClasses = ["empty", "obstacle"]
+                let tileType = map.getTile(c, r);
+                box.classList.add(tileClasses[tileType])
+
+                row.appendChild(box);
+            }
+
+            container.appendChild(row);
+        }
+
+        document.getElementById("grid-container").appendChild(container);
+
+        document.getElementById(startPos.x.toString() + startPos.y.toString()).classList.add("start");
+        document.getElementById(endPos.x.toString() + endPos.y.toString()).classList.add("end");
+    }
+
+    function onFindPathClick() {
+        let route = astar.search(map, startPos, endPos);
+        if (!route) {
+            console.log("no path");
+            return;
+        }
+
+        for (let i = 1; i < route.length - 1; i++) {
+            let routeSegment = route[i];
+            document.getElementById(routeSegment.x.toString() + routeSegment.y.toString()).classList.add("path");
+        }
+
+        console.log("PATH", route);
+    }
+
+
+    document.getElementById("find-path").addEventListener('click', onFindPathClick, false);
+
+    render(map);
+
+    document.getElementById("grid-container").addEventListener('click', handleGridClick, false);
+
+    function getParentByClass(el, className) {
+        do {
+            if (el.classList.contains(className)) {
+                return el;
+            } else {
+                el = el.parentNode;
+            }
+        } while (el && el.parentNode)
+    }
+
+    function handleGridClick(e) {
+        let el = e.target;
+        let col = getParentByClass(el, 'col');
+
+        if (!col) {
+            return;
+        }
+
+        let tileType = document.querySelector('input[name="draw-item"]:checked').value || 0;
+        let x = col.dataset.x;
+        let y = col.dataset.y;
+
+        map.setTile(Number(x), Number(y), Number(tileType));
+        render(map);
+    }
+</script>
+
+</html>

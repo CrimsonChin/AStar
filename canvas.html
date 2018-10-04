@@ -1,0 +1,115 @@
+<html>
+
+<head>
+    <title>A* Path Finding</title>
+    <script src="src/map.js"></script>
+    <script src="src/astar.js"></script>
+    <style>
+        body {
+            font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        button {
+            background: #3498db;
+            width: 100px;
+            color: #fff;
+            border: 0;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2E88C5;
+        }
+
+        canvas {
+            position: absolute;
+        }
+
+        canvas.ground {
+            z-index: 0
+        }
+
+        canvas.route {
+            z-index: 1
+        }
+
+        .game-viewport {
+            width: 175px;
+            height: 175px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>A* Path Finding - with Canvas</h1>
+    <div>
+        <div class="game-viewport">
+            <canvas id="canvas" width="175" height="175" class="ground"></canvas>
+            <canvas id="path" width="175" height="175" class="route"></canvas>
+        </div>
+        <button id="search">A* Search</button>
+    </div>
+</body>
+<script>
+    const startPos = {
+        x: 1,
+        y: 4
+    };
+    const endPos = {
+        x: 5,
+        y: 4
+    };
+
+    function render(map) {
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+
+        for (let r = 0; r < map.rows; r++) {
+            for (let c = 0; c < map.cols; c++) {
+                let styles = ['green', 'grey'];
+                let fillStyle = styles[map.getTile(c, r)];
+
+                drawTile(ctx, c, r, map.tSize, fillStyle);
+            }
+        }
+
+        drawTile(ctx, startPos.x, startPos.y, map.tSize, 'red');
+        drawTile(ctx, endPos.x, endPos.y, map.tSize, 'blue');
+    }
+
+    function drawTile(ctx, x, y, size, fillStyle) {
+        ctx.beginPath();
+        ctx.fillStyle = fillStyle;
+        ctx.strokeStyle = 'black';
+        ctx.rect(x * size, y * size, size, size);
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    function drawRoute(route) {
+        if (!route) {
+            console.log("no path");
+            return;
+        }
+
+        let canvas = document.getElementById('path');
+        let ctx = canvas.getContext('2d');
+        for (let i = 1; i < route.length - 1; i++) {
+            let routeSegment = route[i];
+            drawTile(ctx, routeSegment.x, routeSegment.y, map.tSize, 'purple')
+        }
+    }
+
+    function onSearchClick() {
+        let route = astar.search(map, startPos, endPos);
+        drawRoute(route);
+    }
+
+    document.getElementById("search").addEventListener('click', onSearchClick, false);
+
+    render(map);
+</script>
+
+</html>
