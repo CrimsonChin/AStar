@@ -1,2 +1,1 @@
-# AStar
-AStar implementation in javascript
+Javascript A*
