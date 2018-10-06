@@ -26,18 +26,11 @@
             position: absolute;
         }
 
-        canvas.ground {
-            z-index: 0
-        }
-
-        canvas.route {
-            z-index: 1
-        }
-
         .game-viewport {
             width: 175px;
             height: 175px;
             margin-bottom: 10px;
+            border: 1px #bdc3c7 solid;
         }
     </style>
 </head>
@@ -45,47 +38,61 @@
 <body>
     <h1>A* Path Finding - with Canvas</h1>
     <div>
-        <div class="game-viewport">
-            <canvas id="canvas" width="175" height="175" class="ground"></canvas>
-            <canvas id="path" width="175" height="175" class="route"></canvas>
+        <div id="game-viewport" class="game-viewport">
         </div>
         <button id="search">A* Search</button>
     </div>
 </body>
 <script>
     const startPos = {
-        x: 1,
-        y: 4
+        x: 0,
+        y: 15
     };
     const endPos = {
-        x: 5,
-        y: 4
+        x: 14,
+        y: 5
     };
 
+
     function render(map) {
-        let canvas = document.getElementById('canvas');
+        // map
+        let canvas = document.getElementById('map-layer');
         let ctx = canvas.getContext('2d');
 
         for (let r = 0; r < map.rows; r++) {
             for (let c = 0; c < map.cols; c++) {
-                let styles = ['green', 'grey'];
+                let styles = ['#fff', '#34495e'];
                 let fillStyle = styles[map.getTile(c, r)];
 
                 drawTile(ctx, c, r, map.tSize, fillStyle);
             }
         }
 
-        drawTile(ctx, startPos.x, startPos.y, map.tSize, 'red');
-        drawTile(ctx, endPos.x, endPos.y, map.tSize, 'blue');
+        // "players"
+        let playerCanvas = document.getElementById('player-layer');
+        let playerCanvasCtx = playerCanvas.getContext('2d');
+
+        drawCircle(playerCanvasCtx, startPos.x, startPos.y, 10, map.tSize, '#e74c3c');
+        drawCircle(playerCanvasCtx, endPos.x, endPos.y, 10, map.tSize, '#9b59b6');
     }
 
     function drawTile(ctx, x, y, size, fillStyle) {
         ctx.beginPath();
         ctx.fillStyle = fillStyle;
-        ctx.strokeStyle = 'black';
         ctx.rect(x * size, y * size, size, size);
         ctx.fill();
-        ctx.stroke();
+    }
+
+    function drawCircle(ctx, x, y, r, size, fillStyle) {
+        ctx.beginPath();
+        ctx.fillStyle = fillStyle;
+        ctx.arc(
+            ((x * size) + (size / 2)),
+            ((y * size) + (size / 2)),
+            r,
+            0,
+            2 * Math.PI);
+        ctx.fill();
     }
 
     function drawRoute(route) {
@@ -94,11 +101,14 @@
             return;
         }
 
-        let canvas = document.getElementById('path');
+        let canvas = document.getElementById('route-layer');
         let ctx = canvas.getContext('2d');
         for (let i = 1; i < route.length - 1; i++) {
             let routeSegment = route[i];
-            drawTile(ctx, routeSegment.x, routeSegment.y, map.tSize, 'purple')
+
+            drawCircle(ctx, routeSegment.x, routeSegment.y, 5, map.tSize, '#2ecc71');
+            //ctx.fillStyle = 'black';
+            //ctx.fillText(i, ((routeSegment.x * map.tSize) + 10), ((routeSegment.y * map.tSize) + (map.tSize / 2)));
         }
     }
 
@@ -106,6 +116,25 @@
         let route = astar.search(map, startPos, endPos);
         drawRoute(route);
     }
+
+    map = map2;
+
+    let gameViewport = document.getElementById('game-viewport');
+    let width = map.cols * map.tSize;
+    let height = map.rows * map.tSize;
+    gameViewport.style.width = width;
+    gameViewport.style.height = height;
+
+    let layers = ['map-layer', 'route-layer', 'player-layer'];
+    for (let i = 0; i < layers.length; i++) {
+        var layer = document.createElement('canvas');
+        layer.id = layers[i];
+        layer.style.cssText = 'z-index:' + i + ';'
+        layer.setAttribute('height', height);
+        layer.setAttribute('width', width);
+        gameViewport.appendChild(layer);
+    }
+
 
     document.getElementById("search").addEventListener('click', onSearchClick, false);
 
