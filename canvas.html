@@ -2,7 +2,7 @@
 
 <head>
     <title>A* Path Finding</title>
-    <script src="src/map.js"></script>
+    <script src="src/map-lg.js"></script>
     <script src="src/astar.js"></script>
     <style>
         body {
@@ -36,27 +36,36 @@
 </head>
 
 <body>
-    <h1>A* Path Finding - with Canvas</h1>
+    <h1>A* Is Born - Path Finding</h1>
     <div>
         <div id="game-viewport" class="game-viewport">
         </div>
-        <button id="search">A* Search</button>
     </div>
 </body>
 <script>
-    const startPos = {
-        x: 0,
-        y: 15
-    };
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min; 
+    }
 
-    let endPos = {
-        x: 14,
-        y: 5
-    };
+    function getPosition(x, y){
+        return {
+            x: x,
+            y: y
+        }
+    }
 
+    const startPos = getPosition(0,15);
+
+    let endPos;
+    while (!endPos || map.getTile(endPos.x, endPos.y) == 1) {
+        let x = getRandomInt(0, map.cols);
+        let y = getRandomInt(0, map.rows);
+        endPos = getPosition(x, y);
+    }
 
     function renderMap(map) {
-        // map
         let canvas = document.getElementById('map-layer');
         let ctx = canvas.getContext('2d');
 
@@ -109,7 +118,7 @@
         }
     }
 
-    function drawPlayers(map, startPos, endPos) {
+    function renderPositions(map, startPos, endPos) {
         let playerCanvas = document.getElementById('player-layer');
         let playerCanvasCtx = playerCanvas.getContext('2d');
 
@@ -119,14 +128,10 @@
         drawCircle(playerCanvasCtx, endPos.x, endPos.y, 10, map.tSize, 'blue');
     }
 
-    function onSearchClick() {
-        drawPlayers(map, startPos, endPos);
-
+    function findRoute() {
         let route = astar.search(map, startPos, endPos);
         drawRoute(route);
     }
-
-    map = map2;
 
     let gameViewport = document.getElementById('game-viewport');
     let width = map.cols * map.tSize;
@@ -144,31 +149,24 @@
         gameViewport.appendChild(layer);
     }
 
-
-
     let canvas = document.getElementById('player-layer');
     let offsetLeft = canvas.offsetLeft;
     let offsetTop = canvas.offsetTop;
 
-    canvas.addEventListener('click', function() {
+    canvas.addEventListener('click', function () {
         var x = Math.floor((event.pageX - offsetLeft) / map.tSize);
         var y = Math.floor((event.pageY - offsetTop) / map.tSize);
 
-        endPos = {
-            x: x,
-            y: y
-        }
-        onSearchClick();
+        endPos = getPosition(x, y);
+
+        renderPositions(map, startPos, endPos);
+        findRoute();
 
     }, false);
 
-
-
-
-    document.getElementById("search").addEventListener('click', onSearchClick, false);
-
     renderMap(map);
-    onSearchClick();
+    renderPositions(map, startPos, endPos);
+    findRoute();
 </script>
 
 </html>
