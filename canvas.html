@@ -48,13 +48,14 @@
         x: 0,
         y: 15
     };
-    const endPos = {
+
+    let endPos = {
         x: 14,
         y: 5
     };
 
 
-    function render(map) {
+    function renderMap(map) {
         // map
         let canvas = document.getElementById('map-layer');
         let ctx = canvas.getContext('2d');
@@ -67,13 +68,6 @@
                 drawTile(ctx, c, r, map.tSize, fillStyle);
             }
         }
-
-        // "players"
-        let playerCanvas = document.getElementById('player-layer');
-        let playerCanvasCtx = playerCanvas.getContext('2d');
-
-        drawCircle(playerCanvasCtx, startPos.x, startPos.y, 10, map.tSize, 'red');
-        drawCircle(playerCanvasCtx, endPos.x, endPos.y, 10, map.tSize, 'blue');
     }
 
     function drawTile(ctx, x, y, size, fillStyle) {
@@ -97,13 +91,15 @@
     }
 
     function drawRoute(route) {
-        if (!route) {
-            console.log("no path");
-            return;
-        }
 
         let canvas = document.getElementById('route-layer');
         let ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, map.cols * map.tSize, map.rows * map.tSize);
+
+        if (!route) {
+            return;
+        }
+
         for (let i = 1; i < route.length - 1; i++) {
             let routeSegment = route[i];
 
@@ -113,7 +109,19 @@
         }
     }
 
+    function drawPlayers(map, startPos, endPos) {
+        let playerCanvas = document.getElementById('player-layer');
+        let playerCanvasCtx = playerCanvas.getContext('2d');
+
+        playerCanvasCtx.clearRect(0, 0, map.cols * map.tSize, map.rows * map.tSize);
+
+        drawCircle(playerCanvasCtx, startPos.x, startPos.y, 10, map.tSize, 'red');
+        drawCircle(playerCanvasCtx, endPos.x, endPos.y, 10, map.tSize, 'blue');
+    }
+
     function onSearchClick() {
+        drawPlayers(map, startPos, endPos);
+
         let route = astar.search(map, startPos, endPos);
         drawRoute(route);
     }
@@ -137,9 +145,30 @@
     }
 
 
+
+    let canvas = document.getElementById('player-layer');
+    let offsetLeft = canvas.offsetLeft;
+    let offsetTop = canvas.offsetTop;
+
+    canvas.addEventListener('click', function() {
+        var x = Math.floor((event.pageX - offsetLeft) / map.tSize);
+        var y = Math.floor((event.pageY - offsetTop) / map.tSize);
+
+        endPos = {
+            x: x,
+            y: y
+        }
+        onSearchClick();
+
+    }, false);
+
+
+
+
     document.getElementById("search").addEventListener('click', onSearchClick, false);
 
-    render(map);
+    renderMap(map);
+    onSearchClick();
 </script>
 
 </html>
